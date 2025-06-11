@@ -1,6 +1,9 @@
 "use client";
+import { removeBookmark, addBookmark } from "@/lib/actions/companion.actions";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface CompanionCardProps {
     id: string;
@@ -19,17 +22,26 @@ const CompanionCard = ({
     subject,
     duration,
     color,
-    bookmarked,
+    bookmarked: initialBookmarked,
 }: CompanionCardProps) => {
-    //const pathname = usePathname();
+    const pathname = usePathname();
+    const [bookmarked, setBookmarked] = useState(initialBookmarked);
+
     const handleBookmark = async () => {
-        if (bookmarked) {
-            //await removeBookmark(id, pathname);
-            console.log('remove book mark');
-        } else {
-            console.log('add book mark');
+        try {
+            if (bookmarked) {
+                await removeBookmark(id, pathname);
+            } else {
+                await addBookmark(id, pathname);
+            }
+
+            // Update the UI state
+            setBookmarked(!bookmarked);
+        } catch (err) {
+            console.error("Bookmark toggle failed:", err);
         }
     };
+
     return (
         <article className="companion-card" style={{ backgroundColor: color }}>
             <div className="flex justify-between items-center">
@@ -49,19 +61,12 @@ const CompanionCard = ({
             <h2 className="text-2xl font-bold">{name}</h2>
             <p className="text-sm">{topic}</p>
             <div className="flex items-center gap-2">
-                <Image
-                    src="/icons/clock.svg"
-                    alt="duration"
-                    width={13.5}
-                    height={13.5}
-                />
+                <Image src="/icons/clock.svg" alt="duration" width={13.5} height={13.5} />
                 <p className="text-sm">{duration} minutes</p>
             </div>
 
             <Link href={`/companions/${id}`} className="w-full">
-                <button className="btn-primary w-full justify-center">
-                    Launch Lesson
-                </button>
+                <button className="btn-primary w-full justify-center">Launch Lesson</button>
             </Link>
         </article>
     );
